@@ -1,2 +1,2 @@
-# ML-financial-modelling
+# man-vs-machine
 Dissertation
