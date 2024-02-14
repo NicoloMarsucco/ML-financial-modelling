@@ -116,8 +116,8 @@ def train_test_random_forest_rolling(period, data_frame):
 
             X_test_full = test_data.loc[:, ~test_data.columns.isin(['adj_actual'])]
 
-            X_train = X_train_full.drop(['Date', 'permno'], axis=1)
-            X_test = X_test_full.drop(['Date', 'permno'], axis=1)
+            X_train = X_train_full.drop(['Date', 'permno', 'numest'], axis=1)
+            X_test = X_test_full.drop(['Date', 'permno', 'numest'], axis=1)
             print(f' min y train {y_train.min()}')
             print(f' max y train {y_train.max()}')
             # Instantiate a RandomForestRegressor 

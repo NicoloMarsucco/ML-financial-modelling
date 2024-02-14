@@ -35,7 +35,7 @@ crsp.to_csv('data/crsp.csv')
 #IBES: analysts average estimates and actual values
 ###################
 ibes = db.raw_sql("""
-                    select ticker, cusip, cname, fpedats, statpers, meanest, actual, anndats_act, fpi
+                    select ticker, cusip, cname, fpedats, statpers, meanest, actual, anndats_act, fpi, numest
                     from ibes.statsum_epsus
                     where  cusip != ''
                     and usfirm='1'
