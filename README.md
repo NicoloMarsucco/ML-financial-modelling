@@ -8,8 +8,11 @@ Master's Thesis
 * check feature importance 
 * N test smaller than paper
 
-* (Grid search for every period)
+#### RESEARCH
+focus on A1 - A2 :
+1.  group estimates in 4 bins for number analyst: now re do plot of tiemseires bad. Are jump seen across all 4 groups?
+2.  is there connection btw error of analyst and bias? Claim: bias larger when error. This can be related to mangers pushing analyst to not give a perfect estimates as trading is the way (especially for brokers9 to make gain. 
+3. why we see bias? Ml classifier to see when and which characteristic make large and small bias?
+4. compare before 2003 and after and check if bias has  decreased (change of regulation in 2003 regarding private discussion (fair discolsure). 
 
-#### ANALYSIS BIAS
-* Analyse bias groupby company, number of analyst that do estimates, ffi48, etc
 
