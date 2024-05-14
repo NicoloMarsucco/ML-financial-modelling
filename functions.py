@@ -119,8 +119,9 @@ def train_test_rolling(period, data_frame):
         length_train = 23 # 24 months 
         n_loops = 396
 
-    #df_std = pd.DataFrame()
-    #df_importances = pd.DataFrame()
+    if 1==0:
+        df_std = pd.DataFrame()
+        df_importances = pd.DataFrame()
 
     for i in range(0, n_loops): # till 12-2019 420 months; last for loop 420-12= 408, for A2 = 420-24=396
         train_start_date = (start_train.to_timestamp() + pd.DateOffset(months=i)).to_period('M')
