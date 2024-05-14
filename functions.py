@@ -224,6 +224,6 @@ def train_test_rolling(period, data_frame):
         result_df = pd.DataFrame(data_frame[(data_frame['Date']>= '1987-01') & (data_frame['Date']<= '2019-12') ])
     result_df['predicted_adj_actual'] = y_hat_test_RF.values
     result_df['predicted_adj_actual_LR'] = y_hat_test_LR.values
-    result_df['biased_expectation'] = (result_df.meanest - result_df.predicted_adj_actual) / result_df.price
+    result_df['bias_AF_ML'] = (result_df.meanest - result_df.predicted_adj_actual) / result_df.price
 
     return result_df
