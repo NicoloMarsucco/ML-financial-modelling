@@ -98,7 +98,7 @@ def read_merge_prepare_data(forecast_period, Macro_Data):
     Merged_Data.dropna(axis=0, inplace=True)
 
     print(f' len extreme data droped {len(Merged_Data.loc[abs(Merged_Data.adj_actual) > 10])}')
-    Merged_Data = Merged_Data.loc[abs(Merged_Data['adj_actual']) < 10]
+    Merged_Data = Merged_Data.loc[(abs(Merged_Data['adj_actual']) < 10) & (abs(Merged_Data['adj_past_eps']) < 10) & (abs(Merged_Data['meanest']) < 10)]
     print(f'len data {len(Merged_Data)}')
 
     return Merged_Data
