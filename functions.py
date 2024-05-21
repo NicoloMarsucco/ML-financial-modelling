@@ -3,6 +3,8 @@ from sklearn.ensemble import RandomForestRegressor
 import statsmodels.api as sm
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn import preprocessing
+from tqdm.auto import tqdm
 
 # Function to prepare data, except for Unemployment data
 def PrepareMacro(Macro_Data,Begin_Year,Begin_Month,Name_col,Name_Var):
@@ -97,9 +99,32 @@ def read_merge_prepare_data(forecast_period, Macro_Data):
     # Drop rows with missing values 
     Merged_Data.dropna(axis=0, inplace=True)
 
-    print(f' len extreme data droped {len(Merged_Data.loc[abs(Merged_Data.adj_actual) > 10])}')
-    Merged_Data = Merged_Data.loc[abs(Merged_Data['adj_actual']) < 10]
-    print(f'len data {len(Merged_Data)}')
+
+    #Winsorize
+    # Calculate the 1st and 99th percentiles
+    #trim_value = 0.01
+    #list_vars_to_trim = ['adj_actual','meanest','adj_past_eps']
+    #for i in list_vars_to_trim:
+    #    lower_bound = Merged_Data[i].quantile(trim_value/2)
+    #    upper_bound = Merged_Data[i].quantile(1-trim_value/2)
+    #    Merged_Data = Merged_Data[(Merged_Data[i] > lower_bound) & (Merged_Data[i] < upper_bound)]
+
+    # Trim outliers from multiple columns, removing rows with outliers in any column
+    #try 0.003
+    trim_value = 0.01
+    list_vars_to_trim = ['adj_actual', 'meanest', 'adj_past_eps']
+
+    # Initialize a mask with all True values
+    mask = pd.Series([True] * len(Merged_Data),index=Merged_Data.index)
+
+    for column in list_vars_to_trim:
+        lower_bound = Merged_Data[column].quantile(trim_value / 2)
+        upper_bound = Merged_Data[column].quantile(1 - trim_value / 2)
+        # Update the mask to exclude rows where the current column has outliers
+        mask &= (Merged_Data[column] > lower_bound) & (Merged_Data[column] < upper_bound)
+
+    # Apply the mask to filter the DataFrame
+    Merged_Data = Merged_Data[mask]
 
     return Merged_Data
 
@@ -119,11 +144,14 @@ def train_test_rolling(period, data_frame):
         length_train = 23 # 24 months 
         n_loops = 396
 
-    if 1==0:
+    if False:
         df_std = pd.DataFrame()
         df_importances = pd.DataFrame()
+    
+    #n_loops = 10
 
-    for i in range(0, n_loops): # till 12-2019 420 months; last for loop 420-12= 408, for A2 = 420-24=396
+
+    for i in tqdm(range(0, n_loops)): # till 12-2019 420 months; last for loop 420-12= 408, for A2 = 420-24=396
         train_start_date = (start_train.to_timestamp() + pd.DateOffset(months=i)).to_period('M')
         train_end_date = (start_train.to_timestamp() + pd.DateOffset(months=length_train+i)).to_period('M')
         train_data = data_frame[(data_frame['Date'] >= train_start_date) & (data_frame['Date'] <= train_end_date)]
@@ -131,12 +159,10 @@ def train_test_rolling(period, data_frame):
 
         test_date = (start_train.to_timestamp() + pd.DateOffset(months=length_train + 1 + i)).to_period('M')
         test_data = data_frame[data_frame['Date'] == test_date]
-        print(f'test on {test_date}')
+        #print(f'{period} test on {test_date}')
 
         if len(test_data)!=0:
-            print(period)
-            #print(f'test data length {len(test_data)}')
-
+            
             # Separate predictors and target variable
             y_train = train_data['adj_actual']
             X_train_full = train_data.loc[:, ~train_data.columns.isin(['adj_actual'])]
@@ -146,7 +172,12 @@ def train_test_rolling(period, data_frame):
             X_train = X_train_full.drop(['Date', 'permno', 'numest'], axis=1)
             X_test = X_test_full.drop(['Date', 'permno', 'numest'], axis=1)
 
-
+            #Standardization
+            scaler = preprocessing.StandardScaler().fit(X_train)
+            feature_names = X_train.columns.tolist()        #for feature importance
+            X_train = scaler.transform(X_train)
+            X_test = scaler.transform(X_test)
+            
             ##########################
             # RandomForestRegressor 
             ##########################
@@ -162,7 +193,7 @@ def train_test_rolling(period, data_frame):
             ##########################
             #Feature Importance -RF
             ##########################
-            if 1==0:
+            if False:
                 df_importances[i] = forest_model_rf.feature_importances_
                 df_std[i] = np.std([tree.feature_importances_ for tree in forest_model_rf.estimators_], axis=0)
             
@@ -181,7 +212,7 @@ def train_test_rolling(period, data_frame):
                     std = std[sorted_indices]
         
                     # Apply the same ordering to the list of features
-                    feature_names = X_train.columns.tolist()
+                    #feature_names = X_test_full.columns.tolist()
                     sorted_list_feature_names = [feature_names[j] for j in sorted_indices]
         
                     # Define the number of bars to show
@@ -199,7 +230,7 @@ def train_test_rolling(period, data_frame):
                     # save feature importance graph
                     plt.savefig(f'images/{period}_feature_importance.pdf', dpi=100, format='pdf')  
 
-
+            
             ##########################
             # Linear Regression
             ##########################  
@@ -214,17 +245,17 @@ def train_test_rolling(period, data_frame):
             y_hat_LR_temp = pd.Series(olsres.predict(X_test_LR))
             y_hat_test_LR = pd.concat([y_hat_test_LR, y_hat_LR_temp ])
            # print(f' len prediciton LR {len(y_hat_test_LR.values)}')
-
+            
 
 
 
 
     # Dataframe with permno, date, predictor, real value and predicted value
-    result_df = pd.DataFrame(data_frame[(data_frame['Date']>= '1986-01') & (data_frame['Date']<= '2019-12') ])
+    result_df = pd.DataFrame(data_frame[(data_frame['Date']>= '1986-01') & (data_frame['Date']<= '2019-12') ]) 
     if period == 'A2':
         result_df = pd.DataFrame(data_frame[(data_frame['Date']>= '1987-01') & (data_frame['Date']<= '2019-12') ])
-    result_df['predicted_adj_actual'] = y_hat_test_RF.values
+    result_df['predicted_adj_actual'] = y_hat_test_RF.values 
     result_df['predicted_adj_actual_LR'] = y_hat_test_LR.values
-    result_df['bias_AF_ML'] = (result_df.meanest - result_df.predicted_adj_actual) / result_df.price
+    result_df['bias_AF_ML'] = (result_df.meanest - result_df.predicted_adj_actual) / result_df.price 
 
     return result_df
