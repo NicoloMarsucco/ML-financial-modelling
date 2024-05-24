@@ -82,7 +82,7 @@ def read_merge_prepare_data(forecast_period, Macro_Data):
     Merged_Data.sort_values(by=['permno','rankdate'], ascending=True)
 
     Merged_Data['Date'] = pd.to_datetime(Merged_Data['rankdate'], format='%Y-%m').dt.to_period('M')
-    Merged_Data = Merged_Data[(Merged_Data['Date'].dt.year >= 1985) & (Merged_Data['Date'].dt.year <= 2019)].drop(['rankdate'], axis=1)
+    Merged_Data = Merged_Data[(Merged_Data['Date'].dt.year >= 1986) & (Merged_Data['Date'].dt.year <= 2019)].drop(['rankdate'], axis=1)
 
     # Preparing the datasets
     Merged_Data.sort_values(by='Date', ascending=True, inplace=True)
@@ -99,18 +99,7 @@ def read_merge_prepare_data(forecast_period, Macro_Data):
     # Drop rows with missing values 
     Merged_Data.dropna(axis=0, inplace=True)
 
-
-    #Winsorize
-    # Calculate the 1st and 99th percentiles
-    #trim_value = 0.01
-    #list_vars_to_trim = ['adj_actual','meanest','adj_past_eps']
-    #for i in list_vars_to_trim:
-    #    lower_bound = Merged_Data[i].quantile(trim_value/2)
-    #    upper_bound = Merged_Data[i].quantile(1-trim_value/2)
-    #    Merged_Data = Merged_Data[(Merged_Data[i] > lower_bound) & (Merged_Data[i] < upper_bound)]
-
     # Trim outliers from multiple columns, removing rows with outliers in any column
-    #try 0.003
     trim_value = 0.01
     list_vars_to_trim = ['adj_actual', 'meanest', 'adj_past_eps']
 
@@ -132,17 +121,19 @@ def read_merge_prepare_data(forecast_period, Macro_Data):
 def train_test_rolling(period, data_frame):
     #RF and Linear Regression
     # Filter data for training and testing based on date (train on 1988, test after; except A2, train on 2 years)
-    data_frame = data_frame[(data_frame['Date']>= '1985-01') & (data_frame['Date']<= '2019-12' )]
-    start_train = pd.to_datetime('1985-01', format='%Y-%m').to_period('M')
+    data_frame = data_frame[(data_frame['Date']>= '1986-01') & (data_frame['Date']<= '2019-12' )]
+    start_train = pd.to_datetime('1986-01', format='%Y-%m').to_period('M')
+
+    print(f"Length total df: {len(data_frame)}" )
  
     y_hat_test_RF = pd.Series()
     y_hat_test_LR = pd.Series()
 
     length_train = 11 # 12 months, hence add 11 to first month 
-    n_loops = 408
+    n_loops = 396
     if period == 'A2':
         length_train = 23 # 24 months 
-        n_loops = 396
+        n_loops = 384
 
     if False:
         df_std = pd.DataFrame()
@@ -228,7 +219,7 @@ def train_test_rolling(period, data_frame):
                     fig.tight_layout()
 
                     # save feature importance graph
-                    plt.savefig(f'images/{period}_feature_importance.pdf', dpi=100, format='pdf')  
+                    plt.savefig(f'images/{period}_feature_importance.png', dpi=100, format= 'png')  
 
             
             ##########################
