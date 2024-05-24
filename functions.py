@@ -8,6 +8,19 @@ from tqdm.auto import tqdm
 
 # Function to prepare data, except for Unemployment data
 def PrepareMacro(Macro_Data,Begin_Year,Begin_Month,Name_col,Name_Var):
+    """
+    Prepare macroeconomic data by extracting values for specified years and months.
+    
+    Parameters:
+        Macro_Data (DataFrame): DataFrame containing macroeconomic data.
+        Begin_Year (int): Starting year for data extraction.
+        Begin_Month (int): Starting month for data extraction.
+        Name_col (str): Prefix for column names in the DataFrame.
+        Name_Var (str): Name of the variable to be extracted.
+    
+    Returns:
+        DataFrame: DataFrame containing dates and values of the specified variable.
+    """
     
     #Initilising the data
     month = Begin_Month
@@ -57,13 +70,23 @@ def PrepareMacro(Macro_Data,Begin_Year,Begin_Month,Name_col,Name_Var):
 
 
 def read_merge_prepare_data(forecast_period, Macro_Data):
+    """
+    Read, merge, and prepare data from CSV files.
+    
+    Parameters:
+        forecast_period (str): Forecast period identifier.
+        Macro_Data (DataFrame): DataFrame containing macroeconomic data.
+    
+    Returns:
+        DataFrame: Merged and prepared DataFrame.
+    """
+
     # Read CSV files
     forecast_file_path = f"data/processed_data/{forecast_period}.csv"
     df = pd.read_csv(forecast_file_path)
 
 
     # Merge DataFrames on Dates and drop unnecessary columns
-
     df = df.sort_values(by=['permno','statpers'], ascending=True)
     df.statpers = pd.to_datetime(df.statpers)
 
@@ -99,18 +122,6 @@ def read_merge_prepare_data(forecast_period, Macro_Data):
     # Drop rows with missing values 
     Merged_Data.dropna(axis=0, inplace=True)
 
-
-    #Winsorize
-    # Calculate the 1st and 99th percentiles
-    #trim_value = 0.01
-    #list_vars_to_trim = ['adj_actual','meanest','adj_past_eps']
-    #for i in list_vars_to_trim:
-    #    lower_bound = Merged_Data[i].quantile(trim_value/2)
-    #    upper_bound = Merged_Data[i].quantile(1-trim_value/2)
-    #    Merged_Data = Merged_Data[(Merged_Data[i] > lower_bound) & (Merged_Data[i] < upper_bound)]
-
-    # Trim outliers from multiple columns, removing rows with outliers in any column
-    #try 0.003
     trim_value = 0.01
     list_vars_to_trim = ['adj_actual', 'meanest', 'adj_past_eps']
 
@@ -130,7 +141,17 @@ def read_merge_prepare_data(forecast_period, Macro_Data):
 
 
 def train_test_rolling(period, data_frame):
-    #RF and Linear Regression
+    """
+    Perform training and testing for Random Forest Regressor and Linear Regression models on rolling windows of data.
+    
+    Parameters:
+        period (str): Period identifier.
+        data_frame (DataFrame): DataFrame containing data for training and testing.
+    
+    Returns:
+        DataFrame: DataFrame containing predicted values along with real values.
+    """
+
     # Filter data for training and testing based on date (train on 1988, test after; except A2, train on 2 years)
     data_frame = data_frame[(data_frame['Date']>= '1985-01') & (data_frame['Date']<= '2019-12' )]
     start_train = pd.to_datetime('1985-01', format='%Y-%m').to_period('M')
@@ -246,10 +267,6 @@ def train_test_rolling(period, data_frame):
             y_hat_test_LR = pd.concat([y_hat_test_LR, y_hat_LR_temp ])
            # print(f' len prediciton LR {len(y_hat_test_LR.values)}')
             
-
-
-
-
     # Dataframe with permno, date, predictor, real value and predicted value
     result_df = pd.DataFrame(data_frame[(data_frame['Date']>= '1986-01') & (data_frame['Date']<= '2019-12') ]) 
     if period == 'A2':
