@@ -122,6 +122,18 @@ def read_merge_prepare_data(forecast_period, Macro_Data):
     # Drop rows with missing values 
     Merged_Data.dropna(axis=0, inplace=True)
 
+
+    #Winsorize
+    # Calculate the 1st and 99th percentiles
+    #trim_value = 0.01
+    #list_vars_to_trim = ['adj_actual','meanest','adj_past_eps']
+    #for i in list_vars_to_trim:
+    #    lower_bound = Merged_Data[i].quantile(trim_value/2)
+    #    upper_bound = Merged_Data[i].quantile(1-trim_value/2)
+    #    Merged_Data = Merged_Data[(Merged_Data[i] > lower_bound) & (Merged_Data[i] < upper_bound)]
+
+    # Trim outliers from multiple columns, removing rows with outliers in any column
+    #try 0.003
     trim_value = 0.01
     list_vars_to_trim = ['adj_actual', 'meanest', 'adj_past_eps']
 
@@ -155,6 +167,8 @@ def train_test_rolling(period, data_frame):
     # Filter data for training and testing based on date (train on 1988, test after; except A2, train on 2 years)
     data_frame = data_frame[(data_frame['Date']>= '1985-01') & (data_frame['Date']<= '2019-12' )]
     start_train = pd.to_datetime('1985-01', format='%Y-%m').to_period('M')
+
+    print(f"Length total df: {len(data_frame)}" )
  
     y_hat_test_RF = pd.Series()
     y_hat_test_LR = pd.Series()
@@ -176,7 +190,6 @@ def train_test_rolling(period, data_frame):
         train_start_date = (start_train.to_timestamp() + pd.DateOffset(months=i)).to_period('M')
         train_end_date = (start_train.to_timestamp() + pd.DateOffset(months=length_train+i)).to_period('M')
         train_data = data_frame[(data_frame['Date'] >= train_start_date) & (data_frame['Date'] <= train_end_date)]
-        #print(f'train btw {train_start_date} and {train_end_date}')
 
         test_date = (start_train.to_timestamp() + pd.DateOffset(months=length_train + 1 + i)).to_period('M')
         test_data = data_frame[data_frame['Date'] == test_date]
@@ -249,7 +262,7 @@ def train_test_rolling(period, data_frame):
                     fig.tight_layout()
 
                     # save feature importance graph
-                    plt.savefig(f'images/{period}_feature_importance.pdf', dpi=100, format='pdf')  
+                    plt.savefig(f'images/{period}_feature_importance.png', dpi=100, format= 'png')  
 
             
             ##########################
