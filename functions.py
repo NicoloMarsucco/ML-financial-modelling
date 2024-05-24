@@ -123,26 +123,18 @@ def read_merge_prepare_data(forecast_period, Macro_Data):
     Merged_Data.dropna(axis=0, inplace=True)
 
 
-    #Winsorize
-    # Calculate the 1st and 99th percentiles
-    #trim_value = 0.01
-    #list_vars_to_trim = ['adj_actual','meanest','adj_past_eps']
-    #for i in list_vars_to_trim:
-    #    lower_bound = Merged_Data[i].quantile(trim_value/2)
-    #    upper_bound = Merged_Data[i].quantile(1-trim_value/2)
-    #    Merged_Data = Merged_Data[(Merged_Data[i] > lower_bound) & (Merged_Data[i] < upper_bound)]
+   
 
     # Trim outliers from multiple columns, removing rows with outliers in any column
-    #try 0.003
-    trim_value = 0.01
+    trim_value = 10
     list_vars_to_trim = ['adj_actual', 'meanest', 'adj_past_eps']
 
     # Initialize a mask with all True values
     mask = pd.Series([True] * len(Merged_Data),index=Merged_Data.index)
 
     for column in list_vars_to_trim:
-        lower_bound = Merged_Data[column].quantile(trim_value / 2)
-        upper_bound = Merged_Data[column].quantile(1 - trim_value / 2)
+        lower_bound = -trim_value
+        upper_bound = trim_value
         # Update the mask to exclude rows where the current column has outliers
         mask &= (Merged_Data[column] > lower_bound) & (Merged_Data[column] < upper_bound)
 
