@@ -1,5 +1,5 @@
-# Replication Study of “Man vs. Machine Learning: The Term Structure of Earnings Expectations and Conditional Biases” 
-Explanation of Bias: Regulations and Number of Analysts.
+# Positive Conditional Bias in Earnings Forecasts: A Machine Learning Approach
 
-Master's Thesis
+
+Study based on "Man versus machine learning: The term structure of earnings expectations and conditional biases" (Van Binsbergen, J. H., Han, X. & Lopez-Lira, A., 2023)
 
